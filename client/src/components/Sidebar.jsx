@@ -15,6 +15,7 @@ const Sidebar = ({
   const moreRef = useRef(null);
   // Email admin hardcode để khớp với App.jsx
   const ADMIN_EMAIL = 'doantanvu2410@gmail.com';
+  const isProfileActive = currentPath.startsWith('/profile');
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -56,7 +57,7 @@ const Sidebar = ({
           )}
           
           {currentUser ? (
-            <Link to="/profile" className={`sidebar-item ${currentPath === '/profile' ? 'active' : ''} sidebar-profile-item`}>
+            <Link to="/profile" className={`sidebar-item ${isProfileActive ? 'active' : ''} sidebar-profile-item`}>
               {currentUser.photoURL ? (
                 <img src={currentUser.photoURL} alt="Avatar" className="sidebar-avatar-small" />
               ) : (
