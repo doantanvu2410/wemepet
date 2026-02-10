@@ -1,0 +1,33 @@
+[
+  {
+    "name": "Bài viết mới",
+    "description": "Đây là con cá Koi mập nhất tôi từng thấy",
+    "owner": "doantanvu2410@gmail.com",
+    "id": "POST-1769678288887",
+    "type": "post",
+    "createdAt": "2026-01-29T09:18:08.888Z",
+    "updatedAt": "2026-01-29T09:18:08.888Z",
+    "likes": [],
+    "comments": [],
+    "status": "approved",
+    "img": "/uploads/1769678288881-Gemini_Generated_Image_pasuu6pasuu6pasu.jpg",
+    "bookmarks": [
+      "doantanvu2410@gmail.com"
+    ]
+  },
+  {
+    "name": "Bài viết mới",
+    "description": "",
+    "owner": "doantanvu2410@gmail.com",
+    "feeling": "Hạnh phúc 😄",
+    "id": "POST-1769679004688",
+    "type": "post",
+    "createdAt": "2026-01-29T09:30:04.688Z",
+    "updatedAt": "2026-01-29T09:30:04.688Z",
+    "likes": [],
+    "comments": [],
+    "status": "approved",
+    "img": "/uploads/1769679004682-Gemini_Generated_Image_dz5m89dz5m89dz5m.jpg",
+    "bookmarks": []
+  }
+]

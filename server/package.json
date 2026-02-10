@@ -1,0 +1,11 @@
+{
+  "name": "wemepet-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mongoose": "^9.1.5",
+    "multer": "^2.0.2"
+  }
+}
