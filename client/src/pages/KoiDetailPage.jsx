@@ -282,6 +282,7 @@ const KoiDetailPage = ({ currentUser, onTransfer }) => {
           </div>
         </div>
       </div>
+      </div>
       {editing && koi && (
         <FullscreenModal onClose={() => setEditing(false)} hideCloseButton>
           <EditKoiPopup
