@@ -1,11 +1,27 @@
-// Cấu hình API Endpoint (Tách biệt Backend & Frontend)
-const API_ORIGIN = 'https://wemepet-api.onrender.com';
+// Cấu hình API Endpoint tương thích local / Render / Vercel.
+const normalizeOrigin = (origin) => origin.replace(/\/+$/, '');
+const ensureLeadingSlash = (value) => (value.startsWith('/') ? value : `/${value}`);
+
+const resolveApiOrigin = () => {
+  const fromEnv = (import.meta.env.VITE_API_ORIGIN || '').trim();
+  if (fromEnv) return normalizeOrigin(fromEnv);
+
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    const isLocal = host === 'localhost' || host === '127.0.0.1';
+    if (isLocal) return 'http://localhost:5001';
+  }
+
+  return 'https://wemepet-api.onrender.com';
+};
+
+export const API_ORIGIN = resolveApiOrigin();
 export const API_URL = `${API_ORIGIN}/api`;
 
 export const getImageUrl = (path) => {
   if (!path) return 'https://placehold.co/600x400?text=No+Image';
   if (path.startsWith('http')) return path;
-  return `${API_ORIGIN}${path.startsWith('/') ? '' : '/'}${path}`;
+  return `${API_ORIGIN}${ensureLeadingSlash(path)}`;
 };
 
 export const getRelativeTime = (dateString) => {
