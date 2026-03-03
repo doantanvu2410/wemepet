@@ -3,6 +3,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const { registerV2Routes } = require('./v2/routes');
 
 const app = express();
 app.use(cors());
@@ -113,6 +114,15 @@ const readPosts = () => {
 const writePosts = (data) => {
   fs.writeFileSync(POSTS_FILE, JSON.stringify(data, null, 2), 'utf8');
 };
+
+// ============================================================
+// PHÂN HỆ V2: DATA MODEL CHUẨN HÓA (ACCOUNT/COLLECTION/KOI TRACE)
+// ============================================================
+registerV2Routes({
+  app,
+  readLegacyUsers: readUsers,
+  readLegacyKois: readData,
+});
 
 // ============================================================
 // PHÂN HỆ 1: NGƯỜI DÙNG & HỆ THỐNG (USER & SYSTEM MODULE)
@@ -822,6 +832,12 @@ app.get('/api/kois/:id/transaction', (req, res) => {
   // Tìm giao dịch pending mới nhất cho cá này
   const tx = transactions.find(t => t.koiId === req.params.id && t.status === 'pending_acceptance');
   res.json(tx || null);
+});
+
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Wemepet API is running 🚀'
+  });
 });
 
 const PORT = 5001;
