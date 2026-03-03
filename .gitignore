@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+apps/*/node_modules/
+
+# build outputs
+apps/*/.next/
+apps/*/dist/
+apps/*/coverage/
+
+# env
+.env
+.env.*
+!.env.example
+!apps/*/.env.example
+
+# logs
+*.log
+npm-debug.log*
+
+# misc
+.DS_Store
+.vscode/
+.idea/
+
+# infra local
+infra/docker/data/
+infra/docker/minio/

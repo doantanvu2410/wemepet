@@ -1,45 +1,65 @@
-# Wemepet Project
+# WemePet Platform (Hard Reset)
 
-## Structure
-- `client/`: React + Vite frontend (deploy on Vercel).
-- `server/`: Express API (deploy on Render).
+Production-grade rebuild with clean architecture, PostgreSQL, and modular domain services.
 
-## Local Development
-1. Backend:
+## Workspace
+- `apps/api`: NestJS + Prisma API.
+- `apps/web`: Next.js App Router frontend.
+- `docs/architecture.md`: technical architecture notes.
+- `docker-compose.yml`: local Postgres/Redis/MinIO stack.
+
+Legacy folders (`client`, `server`) are kept only for migration reference.
+
+## Local Setup
+1. Start infra
 ```bash
-cd server
-npm install
-cp .env.example .env
-npm start
+docker compose up -d
 ```
 
-2. Frontend:
+2. Install dependencies
 ```bash
-cd client
 npm install
+```
+
+3. Configure env
+```bash
 cp .env.example .env
+cp apps/web/.env.example apps/web/.env.local
+```
+
+4. Run API
+```bash
+cd apps/api
+npm run prisma:generate
+npm run prisma:dev
 npm run dev
 ```
 
-## Deploy Backend on Render
-- `render.yaml` is included at repo root.
-- Service root directory: `server`.
-- Required env vars:
-  - `NODE_ENV=production`
-  - `CORS_ORIGINS=https://<your-vercel-domain>`
-  - `PORT` is provided by Render automatically.
+5. Run Web
+```bash
+cd apps/web
+npm run dev
+```
 
-Health check endpoints:
-- `GET /`
-- `GET /healthz`
+## API Highlights
+- JWT verification via JWKS (`AUTH_JWKS_URL`, `AUTH_ISSUER`, `AUTH_AUDIENCE`).
+- Social feed: posts, media, comments tree, likes/bookmarks.
+- Koi registry + moderation states.
+- Transfer engine: user_id based, lock-safe, audit + outbox.
+- Structured notifications with unread counters.
+- S3 signed upload URL flow.
 
-## Deploy Frontend on Vercel
-- Set project root to `client`.
-- `client/vercel.json` includes SPA rewrites.
-- Required env vars:
-  - `VITE_API_ORIGIN=https://<your-render-backend-domain>`
+For Firebase ID token verification set:
+- `AUTH_JWKS_URL=https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com`
+- `AUTH_ISSUER=https://securetoken.google.com/<your-firebase-project-id>`
+- `AUTH_AUDIENCE=<your-firebase-project-id>`
+
+## Migration
+- Prisma schema: `apps/api/prisma/schema.prisma`.
+- Initial SQL migration: `apps/api/prisma/migrations/0001_init/migration.sql`.
+- Legacy JSON migration script: `apps/api/scripts/migrate-json-to-postgres.ts`.
+- Hard reset data script: `apps/api/scripts/reset-database.ts` (`npm run db:reset-hard`).
 
 ## Notes
-- Current backend data uses JSON files in `server/*.json`.
-- Render filesystem is ephemeral, so data in local files is not durable across deploy/restart.
-- For production reliability, migrate to a persistent database (MongoDB/Postgres).
+- JSON files are not used by the new runtime.
+- Use Firebase Web config in `apps/web/.env.local` and point API auth JWKS to your Firebase project.
