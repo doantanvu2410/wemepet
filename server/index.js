@@ -834,6 +834,12 @@ app.get('/api/kois/:id/transaction', (req, res) => {
   res.json(tx || null);
 });
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Wemepet API is running 🚀'
+  });
+});
+
 const PORT = 5001;
 app.listen(PORT, () => {
   console.log(`🚀 Server chạy ngon lành tại http://localhost:${PORT}`);
