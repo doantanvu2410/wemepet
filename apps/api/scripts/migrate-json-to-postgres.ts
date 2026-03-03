@@ -91,7 +91,9 @@ async function ensureUserRole() {
 
 async function migrate() {
   const root = path.resolve(process.cwd(), '..', '..');
-  const legacyDir = path.resolve(root, 'server');
+  const legacyDir = process.env.LEGACY_JSON_DIR
+    ? path.resolve(process.env.LEGACY_JSON_DIR)
+    : path.resolve(root, 'legacy-data');
 
   const usersRaw = toArray(readJson(path.resolve(legacyDir, 'users.json')));
   const postsRaw = toArray(readJson(path.resolve(legacyDir, 'posts.json')));

@@ -2,12 +2,39 @@ services:
   - type: web
     name: wemepet-api
     runtime: node
-    rootDir: server
-    buildCommand: npm install
-    startCommand: npm start
-    healthCheckPath: /healthz
+    rootDir: apps/api
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: CORS_ORIGINS
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: AUTH_JWKS_URL
+        sync: false
+      - key: AUTH_ISSUER
+        sync: false
+      - key: AUTH_AUDIENCE
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: CDN_BASE_URL
+        sync: false
+
+  - type: web
+    name: wemepet-web
+    runtime: node
+    rootDir: apps/web
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_BASE_URL
         sync: false

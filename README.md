@@ -8,7 +8,7 @@ Production-grade rebuild with clean architecture, PostgreSQL, and modular domain
 - `docs/architecture.md`: technical architecture notes.
 - `docker-compose.yml`: local Postgres/Redis/MinIO stack.
 
-Legacy folders (`client`, `server`) are kept only for migration reference.
+Legacy app code has been fully removed. This repository now only contains the new platform stack.
 
 ## Local Setup
 1. Start infra
@@ -57,7 +57,7 @@ For Firebase ID token verification set:
 ## Migration
 - Prisma schema: `apps/api/prisma/schema.prisma`.
 - Initial SQL migration: `apps/api/prisma/migrations/0001_init/migration.sql`.
-- Legacy JSON migration script: `apps/api/scripts/migrate-json-to-postgres.ts`.
+- Legacy JSON migration script: `apps/api/scripts/migrate-json-to-postgres.ts` (reads from `legacy-data/` by default, or `LEGACY_JSON_DIR`).
 - Hard reset data script: `apps/api/scripts/reset-database.ts` (`npm run db:reset-hard`).
 
 ## Notes
