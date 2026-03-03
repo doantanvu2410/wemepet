@@ -19,6 +19,8 @@ import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
@@ -58,6 +60,13 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
+    getRedirectResult(auth).catch((err) => {
+      console.error(err);
+      toast('Đăng nhập Google thất bại. Vui lòng thử lại.', 'error');
+    });
+  }, [toast]);
+
+  useEffect(() => {
     if (!user) return;
     fetch(`${API_URL}/users/sync`, {
       method: 'POST',
@@ -71,16 +80,37 @@ function AppContent() {
     }).catch(() => {});
   }, [user]);
 
-  const handleGoogleLogin = () => {
-    signInWithPopup(auth, provider).catch(err => console.error(err));
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+      toast('Đăng nhập Google thành công!', 'success');
+    } catch (err) {
+      console.error(err);
+      const code = err?.code || '';
+      if (code === 'auth/popup-blocked' || code === 'auth/popup-closed-by-user') {
+        try {
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirectErr) {
+          console.error(redirectErr);
+        }
+      }
+      toast('Không thể đăng nhập Google. Hãy kiểm tra popup và thử lại.', 'error');
+    }
   };
 
   const handleLogout = () => {
     signOut(auth).catch(err => console.error(err));
   };
 
-  const handleEmailLogin = (email, password) => {
-    signInWithEmailAndPassword(auth, email, password).catch(err => console.error(err));
+  const handleEmailLogin = async (email, password) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      toast('Đăng nhập thành công!', 'success');
+    } catch (err) {
+      console.error(err);
+      toast('Email hoặc mật khẩu không đúng.', 'error');
+    }
   };
 
   const handleForgotPassword = async (email) => {
