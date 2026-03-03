@@ -38,7 +38,7 @@ const FeedCard = ({ koi, currentUser, onRemove, onUpdate }) => {
 
   const handleBookmark = () => {
     if (!currentUser) {
-      alert("Vui lòng đăng nhập để lưu bài viết!");
+      toast('Vui lòng đăng nhập để lưu bài viết!', 'error');
       return;
     }
     
@@ -61,7 +61,7 @@ const FeedCard = ({ koi, currentUser, onRemove, onUpdate }) => {
 
   const handleLike = () => {
     if (!currentUser) {
-      alert("Vui lòng đăng nhập để thả tim!");
+      toast('Vui lòng đăng nhập để thả tim!', 'error');
       return;
     }
     
@@ -91,10 +91,14 @@ const FeedCard = ({ koi, currentUser, onRemove, onUpdate }) => {
     setTimeout(() => setShowHeart(false), 800);
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const url = `${window.location.origin}/post/${koi.id}`;
-    navigator.clipboard.writeText(url);
-    toast('Đã sao chép liên kết!', 'success');
+    try {
+      await navigator.clipboard.writeText(url);
+      toast('Đã sao chép liên kết!', 'success');
+    } catch {
+      toast('Không thể sao chép liên kết trên trình duyệt này.', 'error');
+    }
   };
 
   const handleDelete = async () => {

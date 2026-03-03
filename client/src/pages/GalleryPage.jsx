@@ -25,7 +25,7 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
   const [previewUrls, setPreviewUrls] = useState([]);
   const [caption, setCaption] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState('none');
+  const selectedFilter = 'none';
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showFeelings, setShowFeelings] = useState(false);
   const [feeling, setFeeling] = useState(null);
@@ -33,16 +33,35 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
   const toast = useToast();
   const previewCarouselRef = useRef(null);
   const navigate = useNavigate();
+  const clearPreviewUrls = (items = previewUrls) => {
+    items.forEach((item) => {
+      if (item?.url) URL.revokeObjectURL(item.url);
+    });
+  };
+  const resetComposer = () => {
+    clearPreviewUrls();
+    setFiles([]);
+    setPreviewUrls([]);
+    setCaption('');
+    setIsExpanded(false);
+    setFeeling(null);
+    setShowFeelings(false);
+    setCurrentImageIndex(0);
+  };
 
   useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
     const loadFeed = async () => {
       try {
-        const res = await fetch(`${API_URL}/feed?_t=${Date.now()}`);
+        const res = await fetch(`${API_URL}/feed?_t=${Date.now()}`, { signal: controller.signal });
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error('Dữ liệu API không hợp lệ');
 
         const sortedFeed = [...data].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         const publicFeed = sortedFeed.filter(k => k.status !== 'pending');
+        if (!isMounted) return;
         setPendingIdentities(sortedFeed.filter(k => k.status === 'pending' && k.type === 'koi_identity').slice(0, 5));
 
         const ownerEmails = Array.from(new Set(publicFeed.map(item => item.owner).filter(Boolean)));
@@ -51,31 +70,42 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
             const batchRes = await fetch(`${API_URL}/users/batch`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ emails: ownerEmails })
+              body: JSON.stringify({ emails: ownerEmails }),
+              signal: controller.signal
             });
             const users = await batchRes.json();
             const userMap = new Map(users.map(user => [user.email, user]));
+            if (!isMounted) return;
             setKois(publicFeed.map(item => ({
               ...item,
               ownerProfile: userMap.get(item.owner) || null
             })));
           } catch (err) {
+            if (err.name === 'AbortError') return;
             console.error(err);
+            if (!isMounted) return;
             setKois(publicFeed);
           }
         } else {
+          if (!isMounted) return;
           setKois(publicFeed);
         }
       } catch (err) {
+        if (err.name === 'AbortError') return;
         console.error(err);
+        if (!isMounted) return;
         setKois([]);
         setPendingIdentities([]);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     loadFeed();
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, [refreshKey]);
 
   useEffect(() => {
@@ -94,49 +124,54 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
   ];
 
   const handleFileChange = async (event) => {
-    if (event.target.files && event.target.files.length > 0) {
-      // Xóa các URL xem trước cũ để tránh rò rỉ bộ nhớ
-      previewUrls.forEach(u => URL.revokeObjectURL(u.url));
+    if (!event.target.files || event.target.files.length === 0) return;
 
-      const selectedFiles = Array.from(event.target.files).slice(0, 6); // Giới hạn 6 files
-      
-      // Nén các file ảnh
-      const processedFiles = await Promise.all(selectedFiles.map(async (file) => {
-        if (file.type.startsWith('image/')) {
-          try {
-            return await compressImage(file);
-          } catch (e) { return file; }
+    clearPreviewUrls();
+    const selectedFiles = Array.from(event.target.files).slice(0, 6);
+    const processedFiles = await Promise.all(
+      selectedFiles.map(async (file) => {
+        if (!file.type.startsWith('image/')) return file;
+        try {
+          return await compressImage(file);
+        } catch {
+          return file;
         }
-        return file;
-      }));
-
-      const urls = await Promise.all(processedFiles.map(async (file) => {
+      })
+    );
+    const nextPreviews = await Promise.all(
+      processedFiles.map(async (file) => {
         const url = URL.createObjectURL(file);
+        let duration;
+
         if (file.type.startsWith('video/')) {
           try {
-            const duration = await new Promise((resolve) => {
+            duration = await new Promise((resolve) => {
               const video = document.createElement('video');
               video.onloadedmetadata = () => resolve(video.duration);
+              video.onerror = () => resolve(undefined);
               video.src = url;
             });
-            return { url, type: file.type, duration };
-          } catch (e) { return file; }
+          } catch {
+            duration = undefined;
+          }
         }
-        return file;
-      }));
 
-      // Thay thế danh sách file cũ bằng danh sách mới
-      setFiles(processedFiles);
-      setPreviewUrls(urls.map(f => ({ url: f.url || URL.createObjectURL(f), type: f.type, duration: f.duration })));
-      setIsExpanded(true);
-    }
+        return { url, type: file.type, duration };
+      })
+    );
+
+    setFiles(processedFiles);
+    setPreviewUrls(nextPreviews);
+    setCurrentImageIndex(0);
+    setIsExpanded(true);
+    event.target.value = '';
   };
 
   const removeFile = (index) => {
     const newFiles = [...files];
     const newPreviewUrls = [...previewUrls];
-    
-    URL.revokeObjectURL(newPreviewUrls[index].url);
+
+    if (newPreviewUrls[index]?.url) URL.revokeObjectURL(newPreviewUrls[index].url);
     
     newFiles.splice(index, 1);
     newPreviewUrls.splice(index, 1);
@@ -152,8 +187,8 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
   };
 
   const handleSubmit = () => {
-    if (files.length === 0) {
-      toast('Vui lòng chọn ít nhất một ảnh hoặc video!', 'error');
+    if (!caption.trim() && files.length === 0) {
+      toast('Vui lòng nhập nội dung hoặc chọn ảnh/video!', 'error');
       return;
     }
 
@@ -161,7 +196,7 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
 
     const payload = new FormData();
     payload.append('name', 'Bài viết mới');
-    payload.append('description', caption);
+    payload.append('description', caption.trim());
     files.forEach(file => {
       payload.append('imgUpload', file);
     });
@@ -182,12 +217,7 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
       .then((newPost) => {
         toast('Đăng bài viết thành công!', 'success');
         setKois(prev => [newPost, ...prev]);
-        setFiles([]);
-        setPreviewUrls([]);
-        setCaption('');
-        setIsExpanded(false);
-        setFeeling(null);
-        setShowFeelings(false);
+        resetComposer();
       })
       .catch(err => toast(err.message, 'error'))
       .finally(() => setIsSubmitting(false));
@@ -320,7 +350,7 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
                 <div className="create-post-footer">
                    <button 
                     className="btn secondary flex-1" 
-                    onClick={() => { setIsExpanded(false); setFiles([]); setPreviewUrls([]); setCaption(''); setFeeling(null); setShowFeelings(false); }}
+                    onClick={resetComposer}
                     disabled={isSubmitting}
                    >
                      Hủy

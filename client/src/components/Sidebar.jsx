@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 
 const Sidebar = ({
@@ -9,33 +9,30 @@ const Sidebar = ({
   onSubmit,
   onRegisterKoi,
   currentPath,
-  onSettings,
 }) => {
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const moreRef = useRef(null);
   // Email admin hardcode để khớp với App.jsx
   const ADMIN_EMAIL = 'doantanvu2410@gmail.com';
   const isProfileActive = currentPath.startsWith('/profile');
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (showMoreMenu && moreRef.current && !moreRef.current.contains(event.target)) {
-        setShowMoreMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showMoreMenu]);
+  const handleQuickPost = () => {
+    if (currentUser) {
+      onSubmit();
+      return;
+    }
+    onLogin();
+  };
 
   return (
     <aside className="app-sidebar">
       <Link to="/" className="sidebar-brand" aria-label="Trở về trang chủ">
-        <span className="material-icons-outlined sidebar-icon">pets</span>
+        <span className="material-icons-outlined sidebar-brand-mark">pets</span>
+        <span className="sidebar-brand-wordmark">WemePet</span>
       </Link>
       
       <div className="sidebar-content">
+        <button type="button" className="sidebar-composer" onClick={handleQuickPost}>
+          <span className="material-icons-outlined">edit_square</span>
+          <span>Tạo bài viết</span>
+        </button>
         {/* 1. Điều hướng chính */}
         <div className="sidebar-group">
           <Link to="/" className={`sidebar-item ${currentPath === '/' ? 'active' : ''}`}>

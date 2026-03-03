@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
 import './ui-upgrade.css';
+import './facebook-orange.css';
 
 const rootElement = document.getElementById('root');
 

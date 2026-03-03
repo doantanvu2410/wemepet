@@ -45,10 +45,6 @@ function AppContent() {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const handleSettings = () => {
-    navigate('/settings');
-  };
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, currentUser => {
       setUser(currentUser);
@@ -137,7 +133,6 @@ function AppContent() {
         onSubmit={() => setShowSubmit(true)}
         onRegisterKoi={() => setShowRegisterKoi(true)}
         currentPath={location.pathname}
-        onSettings={handleSettings}
       />
       <BottomNavigation 
         currentUser={user}
