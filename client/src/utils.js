@@ -1,10 +1,11 @@
 // Cấu hình API Endpoint (Tách biệt Backend & Frontend)
-export const API_URL = 'http://localhost:5001/api';
+const API_ORIGIN = 'https://wemepet-api.onrender.com';
+export const API_URL = `${API_ORIGIN}/api`;
 
 export const getImageUrl = (path) => {
   if (!path) return 'https://placehold.co/600x400?text=No+Image';
   if (path.startsWith('http')) return path;
-  return `http://localhost:5001${path.startsWith('/') ? '' : '/'}${path}`;
+  return `${API_ORIGIN}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
 export const getRelativeTime = (dateString) => {
