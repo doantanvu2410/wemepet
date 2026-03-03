@@ -160,6 +160,12 @@ app.get('/api/users/:email', (req, res) => {
   });
 });
 
+// Lấy danh sách tất cả Users (Admin)
+app.get('/api/users', (req, res) => {
+  const users = readUsers();
+  res.json(users);
+});
+
 // Lấy danh sách User theo danh sách Email (Batch)
 app.post('/api/users/batch', (req, res) => {
   const { emails } = req.body;

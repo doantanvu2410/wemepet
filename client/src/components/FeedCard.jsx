@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getImageUrl, getRelativeTime, API_URL, getAvatarUrl } from '../utils';
 import { useToast } from './Toast';
+import { FullscreenModal } from './Popups';
+import EditPostPopup from './EditPostPopup';
 
-const FeedCard = ({ koi, currentUser, onRemove }) => {
+const FeedCard = ({ koi, currentUser, onRemove, onUpdate }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [likes, setLikes] = useState(koi.likes || []);
@@ -11,6 +13,7 @@ const FeedCard = ({ koi, currentUser, onRemove }) => {
   const [showHeart, setShowHeart] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const toast = useToast();
   const menuRef = useRef(null);
   
@@ -148,6 +151,18 @@ const FeedCard = ({ koi, currentUser, onRemove }) => {
           </button>
           {showMenu && (
             <div className="feed-card-menu">
+              {!isKoiIdentity && canManage && (
+                <button
+                  type="button"
+                  className="feed-card-menu-item"
+                  onClick={() => {
+                    setShowMenu(false);
+                    setShowEdit(true);
+                  }}
+                >
+                  Chỉnh sửa
+                </button>
+              )}
               <button type="button" className="feed-card-menu-item" onClick={handleShare}>
                 Sao chép liên kết
               </button>
@@ -170,21 +185,18 @@ const FeedCard = ({ koi, currentUser, onRemove }) => {
           )}
 
           {koi.images && koi.images.length > 1 ? (
-            <div
-              className="feed-carousel"
-              style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', width: '100%' }}
-            >
+            <div className="feed-carousel">
               {koi.images.map((img, idx) => (
                 <div
                   key={idx}
-                  style={{ flex: '0 0 100%', scrollSnapAlign: 'center', position: 'relative' }}
+                  className="feed-carousel-item"
                   onClick={openPostDetail}
                 >
                   {img.match(/\.(mp4|webm|ogg|mov|qt|avi|wmv|flv|m4v)$/i) ? (
                     <>
-                      <video src={getImageUrl(img)} onDoubleClick={handleDoubleTap} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', padding: '2px', borderRadius: '50%' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'white' }}>play_arrow</span>
+                      <video src={getImageUrl(img)} onDoubleClick={handleDoubleTap} className="feed-media-video" />
+                      <div className="feed-media-play">
+                        <span className="material-symbols-outlined">play_arrow</span>
                       </div>
                     </>
                   ) : (
@@ -213,7 +225,7 @@ const FeedCard = ({ koi, currentUser, onRemove }) => {
                 <span className="material-symbols-outlined">favorite</span>
               </div>
             )}
-            <p style={{ fontSize: '1.5rem', fontWeight: 500, textAlign: 'center', margin: 0, color: '#1e293b', lineHeight: 1.4 }}>
+            <p className="feed-card-text">
               {koi.description}
             </p>
           </div>
@@ -240,7 +252,7 @@ const FeedCard = ({ koi, currentUser, onRemove }) => {
         </div>
       </div>
 
-      <div className="feed-card-caption" style={{ paddingTop: hasMedia ? 0 : 12 }}>
+      <div className={`feed-card-caption ${hasMedia ? '' : 'no-media'}`}>
         {hasMedia && (
           <div className="caption-text">
             <strong>{ownerName}</strong>
@@ -250,7 +262,7 @@ const FeedCard = ({ koi, currentUser, onRemove }) => {
             {isLongCaption && (
               <button 
                 onClick={() => setIsExpanded(!isExpanded)} 
-                style={{ border: 'none', background: 'none', color: '#6b7280', cursor: 'pointer', padding: 0, marginLeft: '4px', fontSize: '0.85rem' }}
+                className="caption-toggle"
               >
                 {isExpanded ? 'ẩn bớt' : 'xem thêm'}
               </button>
@@ -266,6 +278,16 @@ const FeedCard = ({ koi, currentUser, onRemove }) => {
             <span className="feed-card-timestamp">{getRelativeTime(koi.createdAt || new Date().toISOString())}</span>
           </div>
       </div>
+
+      {showEdit && (
+        <FullscreenModal onClose={() => setShowEdit(false)} hideCloseButton>
+          <EditPostPopup
+            post={koi}
+            onClose={() => setShowEdit(false)}
+            onSaved={(updated) => onUpdate?.(updated)}
+          />
+        </FullscreenModal>
+      )}
     </article>
   );
 };

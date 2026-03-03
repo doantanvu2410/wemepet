@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getImageUrl, API_URL } from '../utils';
+import EditKoiPopup from '../components/EditKoiPopup';
+import { FullscreenModal } from '../components/Popups';
 
 
 const KoiDetailPage = ({ currentUser, onTransfer }) => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [koi, setKoi] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pendingTx, setPendingTx] = useState(null);
   const [parents, setParents] = useState({ father: null, mother: null });
+  const [editing, setEditing] = useState(false);
 
-  useEffect(() => {
+  const fetchKoi = () => {
+    setLoading(true);
     fetch(`${API_URL}/kois/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('Not found');
@@ -38,6 +43,8 @@ const KoiDetailPage = ({ currentUser, onTransfer }) => {
             .then(res => res.json())
             .then(tx => setPendingTx(tx))
             .catch(console.error);
+        } else {
+          setPendingTx(null);
         }
         setLoading(false);
       })
@@ -45,6 +52,10 @@ const KoiDetailPage = ({ currentUser, onTransfer }) => {
         console.error(err);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchKoi();
   }, [id]);
 
   const handleRespond = (action) => {
@@ -80,11 +91,14 @@ const KoiDetailPage = ({ currentUser, onTransfer }) => {
   const isOwner = currentUser && koi.owner === currentUser.email;
   const isPendingBuyer = currentUser && pendingTx && pendingTx.buyerEmail === currentUser.email;
   const isVerified = koi.verified || koi.status === 'verified';
+  const isAdmin = currentUser?.email === 'doantanvu2410@gmail.com';
+  const canManage = isOwner || isAdmin;
 
   return (
-    <div className="app-shell">
-      <div className="koi-detail-page">
-        <div className="koi-detail-card" style={{ position: 'relative' }}>
+    <>
+      <div className="app-shell">
+        <div className="koi-detail-page">
+        <div className="koi-detail-card">
           {isVerified && (
             <div className="certificate-stamp">
               <span>WEME</span>
@@ -100,16 +114,16 @@ const KoiDetailPage = ({ currentUser, onTransfer }) => {
             <h1>{koi.name}</h1>
             <div className="koi-identity-row">
               <span className="id-chip" title="Mã định danh duy nhất">
-                <span className="material-icons-outlined" style={{ fontSize: '16px' }}>fingerprint</span>
+                <span className="material-icons-outlined koi-icon-sm">fingerprint</span>
                 ID: {koi.id}
               </span>
               <span className={`verified-badge ${isVerified ? 'active' : 'muted'}`}>
-                <span className="material-icons-outlined" style={{ fontSize: '18px' }}>verified_user</span>
+                <span className="material-icons-outlined koi-icon-md">verified_user</span>
                 {isVerified ? 'Đã xác minh chính chủ' : 'Chưa xác minh'}
               </span>
               {koi.status === 'transferring' && (
-                <span className="status-pill pending" style={{ marginLeft: 'auto', display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
-                  <span className="material-icons-outlined" style={{ fontSize: '14px' }}>sync_alt</span>
+                <span className="status-pill pending ml-auto">
+                  <span className="material-icons-outlined koi-icon-xs">sync_alt</span>
                   Đang chuyển nhượng
                 </span>
               )}
@@ -146,13 +160,12 @@ const KoiDetailPage = ({ currentUser, onTransfer }) => {
                   href={getImageUrl(koi.certificate_img)} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="btn-secondary"
-                  style={{textDecoration: 'none'}}
+                  className="btn-secondary btn-link"
                 >
                   <span className="material-icons-outlined">description</span> Xem chứng nhận
                 </a>
               ) : (
-                <button className="btn-secondary" disabled style={{opacity: 0.5, cursor: 'not-allowed'}}>
+                <button className="btn-secondary" disabled>
                   <span className="material-icons-outlined">description</span> Chưa có chứng nhận
                 </button>
               )}
@@ -160,20 +173,43 @@ const KoiDetailPage = ({ currentUser, onTransfer }) => {
                 Sao chép liên kết
               </button>
               
+              {canManage && (
+                <button className="btn-secondary" onClick={() => setEditing(true)}>
+                  Chỉnh sửa
+                </button>
+              )}
+
+              {canManage && (
+                <button
+                  className="btn-secondary"
+                  onClick={() => {
+                    if (!window.confirm('Xóa hồ sơ cá này?')) return;
+                    fetch(`${API_URL}/kois/${koi.id}`, { method: 'DELETE' })
+                      .then(res => {
+                        if (!res.ok) throw new Error('Không thể xóa');
+                        navigate('/profile');
+                      })
+                      .catch(() => alert('Lỗi khi xóa hồ sơ.'));
+                  }}
+                >
+                  Xóa hồ sơ
+                </button>
+              )}
+
               {/* Logic nút chuyển nhượng */}
               {isOwner && koi.status === 'verified' && (
-                <button className="btn-transfer" onClick={() => onTransfer(koi)} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', fontWeight: 600 }}>
+                <button className="btn-transfer btn-transfer-lg ml-auto" onClick={() => onTransfer(koi)}>
                   <span className="material-icons-outlined">move_up</span> Chuyển nhượng
                 </button>
               )}
 
               {/* Logic cho người nhận (Buyer) */}
               {isPendingBuyer && (
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-                  <button className="btn primary" onClick={() => handleRespond('accept')} style={{ background: '#111827' }}>
+                <div className="ml-auto inline-actions">
+                  <button className="btn dark" onClick={() => handleRespond('accept')}>
                     Chấp nhận
                   </button>
-                  <button className="btn secondary" onClick={() => handleRespond('reject')} style={{ color: 'var(--text-muted)', background: '#fee2e2' }}>
+                  <button className="btn danger" onClick={() => handleRespond('reject')}>
                     Từ chối
                   </button>
                 </div>
@@ -181,7 +217,7 @@ const KoiDetailPage = ({ currentUser, onTransfer }) => {
 
               {/* Logic hủy cho chủ cũ (Seller) */}
               {isOwner && koi.status === 'transferring' && (
-                <button className="btn secondary" onClick={() => handleRespond('cancel')} style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}>
+                <button className="btn secondary ml-auto" onClick={() => handleRespond('cancel')}>
                   Hủy yêu cầu
                 </button>
               )}
@@ -190,30 +226,30 @@ const KoiDetailPage = ({ currentUser, onTransfer }) => {
             
             {/* Lineage Section */}
             {(parents.father || parents.mother) && (
-              <div className="lineage-section" style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #f1f5f9' }}>
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '16px' }}>Gia phả (Lineage)</h3>
-                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+              <div className="lineage-section">
+                <h3>Gia phả (Lineage)</h3>
+                <div className="lineage-grid">
                   {parents.father && (
-                    <div className="lineage-card" style={{ flex: 1, minWidth: '200px', border: '1px solid #e5e7eb', padding: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <img src={getImageUrl(parents.father.img)} alt={parents.father.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '50%' }} />
+                    <div className="lineage-card">
+                      <img src={getImageUrl(parents.father.img)} alt={parents.father.name} />
                       <div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Cá Bố (Father)</div>
-                        <div style={{ fontWeight: 600 }}>
-                            <a href={`/koi/${parents.father.id}`} style={{textDecoration: 'none', color: 'inherit'}}>{parents.father.name}</a>
+                        <div className="lineage-label">Cá Bố (Father)</div>
+                        <div>
+                            <a href={`/koi/${parents.father.id}`} className="lineage-link">{parents.father.name}</a>
                         </div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{parents.father.variety}</div>
+                        <div className="lineage-meta">{parents.father.variety}</div>
                       </div>
                     </div>
                   )}
                   {parents.mother && (
-                    <div className="lineage-card" style={{ flex: 1, minWidth: '200px', border: '1px solid #e5e7eb', padding: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <img src={getImageUrl(parents.mother.img)} alt={parents.mother.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '50%' }} />
+                    <div className="lineage-card">
+                      <img src={getImageUrl(parents.mother.img)} alt={parents.mother.name} />
                       <div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Cá Mẹ (Mother)</div>
-                        <div style={{ fontWeight: 600 }}>
-                             <a href={`/koi/${parents.mother.id}`} style={{textDecoration: 'none', color: 'inherit'}}>{parents.mother.name}</a>
+                        <div className="lineage-label">Cá Mẹ (Mother)</div>
+                        <div>
+                             <a href={`/koi/${parents.mother.id}`} className="lineage-link">{parents.mother.name}</a>
                         </div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{parents.mother.variety}</div>
+                        <div className="lineage-meta">{parents.mother.variety}</div>
                       </div>
                     </div>
                   )}
@@ -241,12 +277,24 @@ const KoiDetailPage = ({ currentUser, onTransfer }) => {
             <div className="koi-owner-info">
               <span>Chủ sở hữu hiện tại: <strong>{koi.owner}</strong></span>
               <br/>
-              <span style={{fontSize: '0.8rem'}}>Được bảo chứng bởi Weme Pet Platform</span>
+              <span className="koi-owner-note">Được bảo chứng bởi Weme Pet Platform</span>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      {editing && koi && (
+        <FullscreenModal onClose={() => setEditing(false)} hideCloseButton>
+          <EditKoiPopup
+            koi={koi}
+            onUpdate={() => {
+              setEditing(false);
+              fetchKoi();
+            }}
+            onClose={() => setEditing(false)}
+          />
+        </FullscreenModal>
+      )}
+    </>
   );
 };
 

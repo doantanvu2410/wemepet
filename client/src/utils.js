@@ -31,13 +31,6 @@ export const getRelativeTime = (dateString) => {
   return "Vừa xong";
 };
 
-export const inputSmall = {
-  flex: 1,
-  padding: '10px',
-  borderRadius: '0',
-  border: '1px solid #ddd',
-};
-
 export const getAvatarUrl = (name) => {
   const safeName = name ? name.split('@')[0] : 'User';
   return `https://ui-avatars.com/api/?name=${safeName}&background=random&color=fff`;

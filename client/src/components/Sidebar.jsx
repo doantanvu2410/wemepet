@@ -48,7 +48,7 @@ const Sidebar = ({
           </Link>
           {currentUser && (
             <Link to="/notifications" className={`sidebar-item ${currentPath === '/notifications' ? 'active' : ''}`}>
-              <div style={{ position: 'relative', display: 'flex' }}>
+              <div className="sidebar-icon-wrap">
                 <span className="material-icons-outlined sidebar-icon">notifications</span>
                 <span className="notification-badge-dot"></span>
               </div>
@@ -63,12 +63,12 @@ const Sidebar = ({
               ) : (
                 <span className="material-icons-outlined sidebar-icon">account_circle</span>
               )}
-              <span className="sidebar-label" style={{ fontWeight: 600 }}>
+              <span className="sidebar-label bold">
                 {currentUser.displayName || 'Hồ sơ cá nhân'}
               </span>
             </Link>
           ) : (
-            <div className="sidebar-item ghost" onClick={onLogin} style={{ cursor: 'pointer' }}>
+            <div className="sidebar-item ghost clickable" onClick={onLogin}>
               <span className="material-icons-outlined sidebar-icon">lock</span>
               <span className="sidebar-label">Đăng nhập để xem thêm</span>
             </div>
@@ -117,22 +117,20 @@ const Sidebar = ({
             <span className="sidebar-label">Đăng xuất</span>
           </button>
         ) : (
-          <div className="sidebar-auth-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="sidebar-auth-actions">
             <button
               type="button"
               onClick={onLogin}
-              className="sidebar-item"
-              style={{ justifyContent: 'center', fontWeight: 600 }}
+              className="sidebar-item sidebar-cta"
             >
               <span className="sidebar-label">Đăng nhập</span>
             </button>
             <button
               type="button"
               onClick={onRegister}
-              className="sidebar-item primary-text"
-              style={{ justifyContent: 'center', background: 'var(--brand-color)', color: 'white' }}
+              className="sidebar-item sidebar-cta primary"
             >
-              <span className="sidebar-label" style={{ color: 'white' }}>Đăng ký</span>
+              <span className="sidebar-label">Đăng ký</span>
             </button>
           </div>
         )}

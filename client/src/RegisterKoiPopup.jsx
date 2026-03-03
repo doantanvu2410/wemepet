@@ -102,105 +102,36 @@ const RegisterKoiPopup = ({ ownerEmail, onSubmit, onClose }) => {
       .finally(() => setIsSubmitting(false));
   };
 
-  // Styles
-  const containerStyle = {
-    width: '100%',
-    maxWidth: '600px',
-    background: 'white',
-    borderRadius: '24px',
-    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-    display: 'flex',
-    flexDirection: 'column',
-    maxHeight: '90vh',
-    overflow: 'hidden',
-  };
-
-  const headerStyle = {
-    padding: '16px 24px',
-    borderBottom: '1px solid #f1f5f9',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    fontWeight: 700,
-    fontSize: '1.2rem',
-    color: '#1e293b',
-    background: '#fff',
-  };
-
-  const bodyStyle = {
-    padding: '24px',
-    overflowY: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-  };
-
-  const sectionLabelStyle = {
-    fontSize: '0.85rem',
-    fontWeight: 600,
-    color: '#64748b',
-    marginBottom: '8px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-  };
-
-  const inputStyle = {
-    width: '100%',
-    padding: '12px 16px',
-    borderRadius: '12px',
-    border: '1px solid #e2e8f0',
-    fontSize: '0.95rem',
-    outline: 'none',
-    background: '#f8fafc',
-    color: '#1e293b',
-    transition: 'all 0.2s',
-  };
-
-  const uploadBoxStyle = {
-    width: '100%',
-    height: '160px',
-    borderRadius: '16px',
-    border: '2px dashed #cbd5e1',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    background: '#f8fafc',
-    position: 'relative',
-    overflow: 'hidden',
-  };
-
   return (
-    <div style={containerStyle}>
-      <div style={headerStyle}>
-        <div style={{ width: '32px' }}></div>
-        <span>Đăng ký định danh Cá Koi</span>
-        <button onClick={onClose} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', color: '#64748b' }}>
+    <div className="modal-card modal-xl modal-tall">
+      <div className="modal-header">
+        <div className="modal-spacer" />
+        <span className="modal-title">Đăng ký định danh Cá Koi</span>
+        <button onClick={onClose} className="modal-close">
           <span className="material-symbols-outlined">close</span>
         </button>
       </div>
       
-      <div style={bodyStyle}>
+      <div className="modal-body gap-20 scroll-y">
         {/* Image Upload */}
         <div>
-          <div style={sectionLabelStyle}>Hình ảnh (Chụp hoặc tải 4 góc)</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div className="form-label">Hình ảnh (Chụp hoặc tải 4 góc)</div>
+          <div className="koi-upload-grid">
             {previewUrls.map((url, index) => (
-              <label key={index} style={uploadBoxStyle}>
+              <label key={index} className="koi-upload-tile">
                 {url ? (
-                  <img src={url} alt={`Góc ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={url} alt={`Góc ${index + 1}`} className="koi-upload-image" />
                 ) : (
                   <>
-                    <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#94a3b8' }}>add_a_photo</span>
-                    <span style={{ marginTop: '4px', color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>
+                    <span className="material-symbols-outlined koi-upload-icon">add_a_photo</span>
+                    <span className="koi-upload-text">
                       {index === 0 ? 'Góc trên (Chính)' : index === 1 ? 'Góc bên' : index === 2 ? 'Cận đầu' : 'Cận đuôi'}
                     </span>
                   </>
                 )}
-                <input type="file" onChange={handleFileChange(index)} accept="image/*" style={{ display: 'none' }} />
+                <input type="file" onChange={handleFileChange(index)} accept="image/*" className="file-input-hidden" />
                 {url && (
-                  <div style={{ position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 600 }}>Sửa</div>
+                  <div className="koi-upload-edit">Sửa</div>
                 )}
               </label>
             ))}
@@ -209,58 +140,58 @@ const RegisterKoiPopup = ({ ownerEmail, onSubmit, onClose }) => {
 
         {/* Basic Info */}
         <div>
-          <div style={sectionLabelStyle}>Thông tin cơ bản</div>
-          <div style={{ display: 'grid', gap: '12px' }}>
-            <input value={formData.name} onChange={handleChange('name')} placeholder="Tên gọi (Ví dụ: Kohaku Champion)" style={inputStyle} />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <input value={formData.variety} onChange={handleChange('variety')} placeholder="Dòng (Variety)" style={inputStyle} />
-              <input value={formData.breeder} onChange={handleChange('breeder')} placeholder="Trại (Breeder)" style={inputStyle} />
+          <div className="form-label">Thông tin cơ bản</div>
+          <div className="stack-12">
+            <input value={formData.name} onChange={handleChange('name')} placeholder="Tên gọi (Ví dụ: Kohaku Champion)" className="input-field" />
+            <div className="form-grid-2">
+              <input value={formData.variety} onChange={handleChange('variety')} placeholder="Dòng (Variety)" className="input-field" />
+              <input value={formData.breeder} onChange={handleChange('breeder')} placeholder="Trại (Breeder)" className="input-field" />
             </div>
           </div>
         </div>
 
         {/* Stats */}
         <div>
-          <div style={sectionLabelStyle}>Chỉ số vật lý</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <input value={formData.year} type="number" onChange={handleChange('year')} placeholder="Năm sinh" style={inputStyle} />
-            <select value={formData.gender} onChange={handleChange('gender')} style={inputStyle}>
+          <div className="form-label">Chỉ số vật lý</div>
+          <div className="form-grid-2">
+            <input value={formData.year} type="number" onChange={handleChange('year')} placeholder="Năm sinh" className="input-field" />
+            <select value={formData.gender} onChange={handleChange('gender')} className="input-field">
               <option value="">Giới tính</option>
               <option value="Male">Đực (Male)</option>
               <option value="Female">Cái (Female)</option>
               <option value="Unspecified">Chưa rõ</option>
             </select>
-            <input value={formData.size} type="number" onChange={handleChange('size')} placeholder="Kích thước (cm)" style={inputStyle} />
-            <input value={formData.kg} type="number" step="0.1" onChange={handleChange('kg')} placeholder="Cân nặng (kg)" style={inputStyle} />
+            <input value={formData.size} type="number" onChange={handleChange('size')} placeholder="Kích thước (cm)" className="input-field" />
+            <input value={formData.kg} type="number" step="0.1" onChange={handleChange('kg')} placeholder="Cân nặng (kg)" className="input-field" />
           </div>
         </div>
         
         {/* Lineage & Description */}
         <div>
-          <div style={sectionLabelStyle}>Thông tin bổ sung</div>
-          <div style={{ display: 'grid', gap: '12px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <input value={formData.fatherId} onChange={handleChange('fatherId')} placeholder="ID Cá Bố (Tùy chọn)" style={inputStyle} />
-              <input value={formData.motherId} onChange={handleChange('motherId')} placeholder="ID Cá Mẹ (Tùy chọn)" style={inputStyle} />
+          <div className="form-label">Thông tin bổ sung</div>
+          <div className="stack-12">
+            <div className="form-grid-2">
+              <input value={formData.fatherId} onChange={handleChange('fatherId')} placeholder="ID Cá Bố (Tùy chọn)" className="input-field" />
+              <input value={formData.motherId} onChange={handleChange('motherId')} placeholder="ID Cá Mẹ (Tùy chọn)" className="input-field" />
             </div>
             <textarea 
               value={formData.description} 
               onChange={handleChange('description')} 
               placeholder="Mô tả chi tiết về nguồn gốc, đặc điểm..." 
-              style={{ ...inputStyle, minHeight: '100px', resize: 'vertical', fontFamily: 'inherit' }} 
+              className="input-field textarea-field"
             />
           </div>
         </div>
 
         {/* Certificate */}
         <div>
-          <div style={sectionLabelStyle}>Giấy chứng nhận</div>
-          <label style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', background: 'white' }}>
-            <span className="material-symbols-outlined" style={{ color: '#64748b' }}>upload_file</span>
-            <span style={{ flex: 1, color: certificateFile ? '#0f172a' : '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div className="form-label">Giấy chứng nhận</div>
+          <label className={`input-field file-upload ${certificateFile ? 'has-file' : ''}`}>
+            <span className="material-symbols-outlined">upload_file</span>
+            <span className="file-upload-name">
               {certificateFile ? certificateFile.name : 'Tải lên ảnh chứng nhận (nếu có)'}
             </span>
-            <input type="file" onChange={handleCertFileChange} accept="image/*,.pdf" style={{ display: 'none' }} />
+            <input type="file" onChange={handleCertFileChange} accept="image/*,.pdf" className="file-input-hidden" />
           </label>
         </div>
 
@@ -268,19 +199,7 @@ const RegisterKoiPopup = ({ ownerEmail, onSubmit, onClose }) => {
         <button 
           onClick={handleSubmit} 
           disabled={isSubmitting} 
-          style={{ 
-            width: '100%', 
-            padding: '14px', 
-            borderRadius: '12px', 
-            border: 'none', 
-            background: '#111827', 
-            color: 'white', 
-            fontWeight: 600, 
-            fontSize: '1rem',
-            cursor: isSubmitting ? 'not-allowed' : 'pointer',
-            opacity: isSubmitting ? 0.7 : 1,
-            marginTop: '10px'
-          }}
+          className="btn dark full mt-4"
         >
           {isSubmitting ? 'Đang xử lý...' : 'Gửi hồ sơ định danh'}
         </button>

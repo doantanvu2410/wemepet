@@ -35,7 +35,7 @@ const NotificationsPage = ({ currentUser }) => {
     return (
       <div className="page-shell">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="skeleton" style={{ height: '72px', borderRadius: '12px', marginBottom: '8px' }} />
+          <div key={i} className="skeleton notification-skeleton" />
         ))}
       </div>
     );
@@ -54,11 +54,11 @@ const NotificationsPage = ({ currentUser }) => {
 
   const getIconInfo = (type) => {
     switch (type) {
-      case 'like': return { icon: 'favorite', color: '#ef4444', bg: '#fee2e2' };
-      case 'comment': return { icon: 'chat_bubble', color: '#3b82f6', bg: '#dbeafe' };
-      case 'transfer_request': return { icon: 'swap_horiz', color: '#f59e0b', bg: '#fef3c7' };
-      case 'follow': return { icon: 'person_add', color: '#8b5cf6', bg: '#ede9fe' };
-      default: return { icon: 'notifications', color: '#6b7280', bg: '#f3f4f6' };
+      case 'like': return { icon: 'favorite', badgeClass: 'like' };
+      case 'comment': return { icon: 'chat_bubble', badgeClass: 'comment' };
+      case 'transfer_request': return { icon: 'swap_horiz', badgeClass: 'transfer' };
+      case 'follow': return { icon: 'person_add', badgeClass: 'follow' };
+      default: return { icon: 'notifications', badgeClass: 'default' };
     }
   };
 
@@ -113,17 +113,17 @@ const NotificationsPage = ({ currentUser }) => {
       </div>
       
       {filteredNotifications.length === 0 ? (
-        <div className="empty-state">
-          <span className="material-symbols-outlined empty-state-icon" style={{ fontSize: '32px' }}>filter_list_off</span>
-          <p className="empty-state-text" style={{ fontSize: '0.9rem' }}>Không có thông báo nào cho bộ lọc này.</p>
+        <div className="empty-state compact">
+          <span className="material-symbols-outlined empty-state-icon small">filter_list_off</span>
+          <p className="empty-state-text small">Không có thông báo nào cho bộ lọc này.</p>
         </div>
       ) : (
         Object.entries(groupedNotifications).map(([group, items]) => (
         <div key={group} className="notification-group">
           <div className="notification-group-title">{group}</div>
-          <div style={{ background: 'white', borderRadius: '16px', border: '1px solid var(--border-soft)', overflow: 'hidden' }}>
+          <div className="notification-list">
             {items.map((notif) => {
-              const { icon, color } = getIconInfo(notif.type);
+              const { icon, badgeClass } = getIconInfo(notif.type);
               const actorName = notif.actorId?.split('@')[0] || 'Người dùng';
               const isKoiItem = notif.koiId && notif.koiId.startsWith('KOI-');
               const targetLink = notif.koiId
@@ -142,8 +142,8 @@ const NotificationsPage = ({ currentUser }) => {
                       alt={actorName} 
                       className="notification-avatar" 
                     />
-                    <div className="notification-badge" style={{ background: color }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '12px', color: 'white' }}>{icon}</span>
+                    <div className={`notification-badge ${badgeClass}`}>
+                      <span className="material-symbols-outlined">{icon}</span>
                     </div>
                   </div>
                   

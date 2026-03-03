@@ -330,10 +330,10 @@ const ProfilePage = ({ currentUser, setUser }) => {
 
           <div className="profile-stats">
             <div className="stat-item"><strong>{ownerItems.length}</strong> bài viết</div>
-            <div className="stat-item" onClick={() => openUserList('followers')} style={{cursor: 'pointer'}}>
+            <div className="stat-item clickable" onClick={() => openUserList('followers')}>
               <strong>{followersCount}</strong> người theo dõi
             </div>
-            <div className="stat-item" onClick={() => openUserList('following')} style={{cursor: 'pointer'}}>
+            <div className="stat-item clickable" onClick={() => openUserList('following')}>
               <strong>{followingCount}</strong> đang theo dõi
             </div>
           </div>
@@ -434,18 +434,18 @@ const ProfilePage = ({ currentUser, setUser }) => {
                 >
                   <img src={imageSrc} alt={item.name} />
                   <div className="profile-card-overlay">
-                    <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-                      <span className="material-symbols-outlined" style={{fontSize: '20px', fontVariationSettings: "'FILL' 1"}}>favorite</span>
+                    <div className="profile-card-overlay-item">
+                      <span className="material-symbols-outlined filled">favorite</span>
                       {item.likes?.length || 0}
                     </div>
-                    <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-                      <span className="material-symbols-outlined" style={{fontSize: '20px', fontVariationSettings: "'FILL' 1"}}>chat_bubble</span>
+                    <div className="profile-card-overlay-item">
+                      <span className="material-symbols-outlined filled">chat_bubble</span>
                       {item.comments?.length || 0}
                     </div>
                   </div>
                   {item.isPublic === false && (
-                    <div style={{position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', padding: '4px'}}>
-                      <span className="material-symbols-outlined" style={{fontSize: '16px', color: 'white'}}>lock</span>
+                    <div className="profile-card-lock">
+                      <span className="material-symbols-outlined">lock</span>
                     </div>
                   )}
                 </div>

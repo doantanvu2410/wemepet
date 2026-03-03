@@ -124,7 +124,7 @@ function AppContent() {
   };
 
   if (loading) {
-    return <div style={{ textAlign: 'center', marginTop: '50px' }}>Đang tải hệ thống...</div>;
+    return <div className="app-loading">Đang tải hệ thống...</div>;
   }
 
   return (
@@ -190,9 +190,9 @@ function AppContent() {
                 <div className="post-detail-wrapper">
                   <button
                     onClick={() => navigate(-1)}
-                    style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 60, background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+                    className="post-detail-close"
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>close</span>
+                    <span className="material-symbols-outlined">close</span>
                   </button>
                   <PostDetailView currentUser={user} />
                 </div>

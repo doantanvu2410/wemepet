@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { getImageUrl, getRelativeTime, API_URL } from '../utils';
 import { useToast } from './Toast';
+import { FullscreenModal } from './Popups';
+import EditPostPopup from './EditPostPopup';
 
 const buildCommentTree = (comments = []) => {
   const map = {};
@@ -39,12 +41,23 @@ const CommentNode = ({
   onReplyChange,
   onSubmitReply,
   onCancelReply,
+  onEdit,
+  activeEditId,
+  editText,
+  onEditChange,
+  onSubmitEdit,
+  onCancelEdit,
+  onLike,
   currentUser,
   onDelete,
   owner,
 }) => {
   const commenter = node.userId?.split('@')[0] || 'Người dùng';
   const showReplyForm = activeReplyId === node.id;
+  const showEditForm = activeEditId === node.id;
+  const isOwner = currentUser?.email === node.userId;
+  const likeCount = node.likes?.length || 0;
+  const isLiked = currentUser?.email && node.likes?.includes(currentUser.email);
 
   return (
     <div className={`comment-node depth-${Math.min(depth, 4)}`}>
@@ -59,20 +72,34 @@ const CommentNode = ({
               <p className="comment-text">{node.text}</p>
               <div className="comment-card-meta-time">
                 <span className="post-detail-comment-time">{getRelativeTime(node.createdAt)}</span>
-                {(currentUser?.email === node.userId || currentUser?.email === owner) && (
-                  <button
-                    type="button"
-                    className="reply-link secondary"
-                    onClick={() => onDelete(node.id)}
-                  >
-                    Xóa
-                  </button>
-                )}
+                <div className="comment-meta-actions">
+                  {isOwner && (
+                    <button
+                      type="button"
+                      className="reply-link"
+                      onClick={() => onEdit(node)}
+                    >
+                      Sửa
+                    </button>
+                  )}
+                  {(currentUser?.email === node.userId || currentUser?.email === owner) && (
+                    <button
+                      type="button"
+                      className="reply-link secondary"
+                      onClick={() => onDelete(node.id)}
+                    >
+                      Xóa
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div className="comment-actions">
+          <button type="button" className={`reply-link ${isLiked ? 'active' : ''}`} onClick={() => onLike(node.id)}>
+            Thích {likeCount > 0 ? `· ${likeCount}` : ''}
+          </button>
           <button type="button" className="reply-link" onClick={() => onReply(node)}>
             Trả lời
           </button>
@@ -104,6 +131,29 @@ const CommentNode = ({
           </div>
         </div>
       )}
+      {showEditForm && (
+        <div className="reply-form-inline">
+          <input
+            placeholder="Chỉnh sửa bình luận..."
+            value={editText}
+            onChange={(e) => onEditChange(e.target.value)}
+            autoFocus
+          />
+          <div className="reply-form-actions">
+            <button type="button" className="btn-icon cancel" onClick={onCancelEdit}>
+              <span className="material-symbols-outlined">close</span>
+            </button>
+            <button
+              type="button"
+              className="btn-icon"
+              onClick={onSubmitEdit}
+              disabled={!editText.trim()}
+            >
+              <span className="material-symbols-outlined">check</span>
+            </button>
+          </div>
+        </div>
+      )}
       {node.children?.length > 0 && (
         <div className="comment-children">
           {node.children.map(child => (
@@ -117,6 +167,13 @@ const CommentNode = ({
               onReplyChange={onReplyChange}
               onSubmitReply={onSubmitReply}
               onCancelReply={onCancelReply}
+              onEdit={onEdit}
+              activeEditId={activeEditId}
+              editText={editText}
+              onEditChange={onEditChange}
+              onSubmitEdit={onSubmitEdit}
+              onCancelEdit={onCancelEdit}
+              onLike={onLike}
               currentUser={currentUser}
               onDelete={onDelete}
               owner={owner}
@@ -138,8 +195,13 @@ const PostDetailView = ({ koiId: propKoiId, currentUser, onClose }) => {
   const [commentText, setCommentText] = useState('');
   const [replyText, setReplyText] = useState('');
   const [activeReply, setActiveReply] = useState(null);
+  const [activeEdit, setActiveEdit] = useState(null);
+  const [editText, setEditText] = useState('');
+  const [showMenu, setShowMenu] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const toast = useToast();
   const commentsEndRef = useRef(null);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     fetch(`${API_URL}/items/${koiId}`) // Đổi sang /items để lấy chi tiết bất kể loại
@@ -158,6 +220,16 @@ const PostDetailView = ({ koiId: propKoiId, currentUser, onClose }) => {
         setLoading(false);
       });
   }, [koiId]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showMenu && menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenu]);
 
   const handleLike = () => {
     if (!currentUser) return alert("Vui lòng đăng nhập!");
@@ -218,6 +290,49 @@ const PostDetailView = ({ koiId: propKoiId, currentUser, onClose }) => {
     setReplyText('');
   };
 
+  const handleEditSubmit = () => {
+    if (!activeEdit) return;
+    if (!currentUser) return toast('Vui lòng đăng nhập!', 'error');
+    fetch(`${API_URL}/items/${koiId}/comments/${activeEdit.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser.email, text: editText.trim() })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Không thể cập nhật');
+        return res.json();
+      })
+      .then(data => {
+        setComments(data.comments);
+        setActiveEdit(null);
+        setEditText('');
+        toast('Đã cập nhật bình luận.', 'success');
+      })
+      .catch(err => toast(err.message, 'error'));
+  };
+
+  const handleEditCancel = () => {
+    setActiveEdit(null);
+    setEditText('');
+  };
+
+  const handleLikeComment = (commentId) => {
+    if (!currentUser) return toast('Vui lòng đăng nhập!', 'error');
+    fetch(`${API_URL}/items/${koiId}/comments/${commentId}/like`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser.email })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Không thể thả tim');
+        return res.json();
+      })
+      .then(data => {
+        setComments(prev => prev.map(c => (c.id === commentId ? { ...c, likes: data.likes } : c)));
+      })
+      .catch(err => toast(err.message, 'error'));
+  };
+
   const handleDeleteComment = (commentId) => {
     if (!window.confirm('Xóa bình luận này?')) return;
     fetch(`${API_URL}/items/${koiId}/comments/${commentId}?userId=${encodeURIComponent(currentUser.email)}`, {
@@ -244,6 +359,21 @@ const PostDetailView = ({ koiId: propKoiId, currentUser, onClose }) => {
     });
   };
 
+  const handleDelete = async () => {
+    if (!currentUser) return;
+    if (!window.confirm('Xóa bài viết này?')) return;
+    try {
+      const endpoint = isKoiIdentity ? `${API_URL}/kois/${koi.id}` : `${API_URL}/posts/${koi.id}`;
+      const res = await fetch(endpoint, { method: 'DELETE' });
+      if (!res.ok) throw new Error(await res.text());
+      toast('Đã xóa bài viết.', 'success');
+      window.history.back();
+    } catch (err) {
+      console.error(err);
+      toast(`Lỗi: ${err.message}`, 'error');
+    }
+  };
+
   if (loading) return <div className="feed-loading">Đang tải...</div>;
   if (!koi) return <div className="feed-loading">Bài viết không tồn tại.</div>;
 
@@ -255,13 +385,13 @@ const PostDetailView = ({ koiId: propKoiId, currentUser, onClose }) => {
     <div className="post-detail-container">
       <div className="post-detail-media">
         {koi.images && koi.images.length > 0 ? (
-          <div style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', width: '100%', height: '100%' }}>
+          <div className="post-detail-carousel">
             {koi.images.map((img, idx) => (
-              <div key={idx} style={{ flex: '0 0 100%', scrollSnapAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div key={idx} className="post-detail-carousel-item">
                 {img.match(/\.(mp4|webm|ogg|mov|qt|avi|wmv|flv|m4v)$/i) ? (
-                  <video src={getImageUrl(img)} controls style={{ maxWidth: '100%', maxHeight: '100%' }} />
+                  <video src={getImageUrl(img)} controls className="post-detail-media-item" />
                 ) : (
-                  <img src={getImageUrl(img)} alt={`${koi.name}-${idx}`} onDoubleClick={handleLike} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                  <img src={getImageUrl(img)} alt={`${koi.name}-${idx}`} onDoubleClick={handleLike} className="post-detail-media-item" />
                 )}
               </div>
             ))}
@@ -275,13 +405,41 @@ const PostDetailView = ({ koiId: propKoiId, currentUser, onClose }) => {
           <div className="feed-avatar">
             <img src={`https://ui-avatars.com/api/?name=${koi.owner}&background=random&color=fff`} alt={koi.owner} />
           </div>
-          <div style={{ fontWeight: 600 }}>{koi.owner?.split('@')[0]}</div>
-          <button className="feed-card-more" style={{marginLeft: 'auto'}}><span className="material-symbols-outlined">more_horiz</span></button>
+          <div className="owner-name">{koi.owner?.split('@')[0]}</div>
+          <div className="feed-card-menu-wrapper ml-auto" ref={menuRef}>
+            <button className="feed-card-more" onClick={() => setShowMenu(prev => !prev)}>
+              <span className="material-symbols-outlined">more_horiz</span>
+            </button>
+            {showMenu && (
+              <div className="feed-card-menu">
+                {!isKoiIdentity && currentUser?.email === koi.owner && (
+                  <button
+                    type="button"
+                    className="feed-card-menu-item"
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowEdit(true);
+                    }}
+                  >
+                    Chỉnh sửa
+                  </button>
+                )}
+                <button type="button" className="feed-card-menu-item" onClick={handleCopyLink}>
+                  Sao chép liên kết
+                </button>
+                {(currentUser?.email === koi.owner || currentUser?.email === 'doantanvu2410@gmail.com') && (
+                  <button type="button" className="feed-card-menu-item danger" onClick={handleDelete}>
+                    Xóa bài viết
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
         <div className="post-detail-comments-container">
           <div className="post-detail-comment-card">
             <div className="comment-card-header">
-              <div className="feed-avatar" style={{flexShrink: 0}}>
+              <div className="feed-avatar flex-shrink-0">
                 <img src={`https://ui-avatars.com/api/?name=${koi.owner}&background=random&color=fff`} alt={koi.owner} />
               </div>
               <div>
@@ -305,12 +463,24 @@ const PostDetailView = ({ koiId: propKoiId, currentUser, onClose }) => {
                   onReply={(comment) => {
                     setActiveReply(comment);
                     setReplyText('');
+                    setActiveEdit(null);
+                  }}
+                  onEdit={(comment) => {
+                    setActiveEdit(comment);
+                    setEditText(comment.text);
+                    setActiveReply(null);
                   }}
                   activeReplyId={activeReply?.id}
                   replyText={replyText}
                   onReplyChange={setReplyText}
                   onSubmitReply={handleReplySubmit}
                   onCancelReply={handleReplyCancel}
+                  activeEditId={activeEdit?.id}
+                  editText={editText}
+                  onEditChange={setEditText}
+                  onSubmitEdit={handleEditSubmit}
+                  onCancelEdit={handleEditCancel}
+                  onLike={handleLikeComment}
                   currentUser={currentUser}
                   onDelete={handleDeleteComment}
                   owner={koi.owner}
@@ -333,7 +503,7 @@ const PostDetailView = ({ koiId: propKoiId, currentUser, onClose }) => {
               <span className="material-icons-outlined">link</span>
             </button>
           </div>
-          <div style={{ fontWeight: 600, fontSize: '0.9rem', padding: '0 8px' }}>{localLikes.length || 0} lượt thích</div>
+          <div className="post-detail-like-count">{localLikes.length || 0} lượt thích</div>
         </div>
 
         {!activeReply && (
@@ -353,6 +523,19 @@ const PostDetailView = ({ koiId: propKoiId, currentUser, onClose }) => {
           </div>
         )}
       </div>
+
+      {showEdit && (
+        <FullscreenModal onClose={() => setShowEdit(false)} hideCloseButton>
+          <EditPostPopup
+            post={koi}
+            onClose={() => setShowEdit(false)}
+            onSaved={(updated) => {
+              setKoi(updated);
+              setShowEdit(false);
+            }}
+          />
+        </FullscreenModal>
+      )}
     </div>
   );
 };

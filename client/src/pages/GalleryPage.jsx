@@ -216,12 +216,12 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
               <div className="feed-avatar">
                 <img src={currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName}&background=random&color=fff`} alt="Avatar" />
               </div>
-              <div className="create-post-input-wrapper" style={{flex: 1}}>
+              <div className="create-post-input-wrapper">
                 {feeling && (
                   <div className="feeling-tag">
                     <span>Đang cảm thấy {feeling.icon} {feeling.label}</span>
-                    <button onClick={(e) => { e.stopPropagation(); setFeeling(null); }} style={{border: 'none', background: 'none', cursor: 'pointer', padding: '0 4px', fontSize: '16px', color: '#c2410c', display: 'flex'}}>
-                      <span className="material-symbols-outlined" style={{fontSize: '16px'}}>close</span>
+                    <button onClick={(e) => { e.stopPropagation(); setFeeling(null); }} className="feeling-remove">
+                      <span className="material-symbols-outlined">close</span>
                     </button>
                   </div>
                 )}
@@ -241,60 +241,46 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
             {isExpanded && (
               <div className="create-post-expanded">
                 {previewUrls.length > 0 && (
-                  <div className="create-post-previews" style={{ position: 'relative' }}>
+                  <div className="create-post-previews">
                     <div 
-                      className="create-post-carousel" 
+                      className="create-post-carousel preview" 
                       ref={previewCarouselRef}
                       onScroll={(e) => setCurrentImageIndex(Math.round(e.target.scrollLeft / e.target.clientWidth))}
-                      style={{height: '300px', borderRadius: '12px', marginBottom: '12px'}}>
+                    >
                       {previewUrls.map((item, idx) => (
-                        <div key={idx} style={{ flex: '0 0 100%', scrollSnapAlign: 'center', position: 'relative', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', overflow: 'hidden' }}>
+                        <div key={idx} className="create-post-preview-item">
                           {item.type.startsWith('video/') ? (
-                            <video src={item.url} controls style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            <video src={item.url} controls className="create-post-preview-media" />
                           ) : (
                             <img 
                               src={item.url} 
                               alt={`Preview ${idx}`} 
-                              style={{ width: '100%', height: '100%', objectFit: 'contain', ...filters.find(f => f.class === selectedFilter)?.style }} 
+                              className="create-post-preview-media"
+                              style={{ ...filters.find(f => f.class === selectedFilter)?.style }} 
                             />
                           )}
                           {item.duration && (
-                            <div style={{ position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.7)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 500 }}>
+                            <div className="create-post-duration">
                               {new Date(item.duration * 1000).toISOString().substr(14, 5)}
                             </div>
                           )}
                           <button
                             onClick={() => removeFile(idx)}
-                            style={{
-                              position: 'absolute',
-                              top: '8px',
-                              right: '8px',
-                              background: 'rgba(0,0,0,0.6)',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '50%',
-                              width: '28px',
-                              height: '28px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                              zIndex: 10
-                            }}
+                            className="create-post-remove"
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+                            <span className="material-symbols-outlined">close</span>
                           </button>
                         </div>
                       ))}
                     </div>
                     {currentImageIndex > 0 && (
-                      <button className="carousel-nav-btn prev" onClick={(e) => { e.preventDefault(); scrollPrev(); }} style={{ left: '8px' }}>
-                        <span className="material-symbols-outlined" style={{fontSize: '20px', color: '#1e293b'}}>chevron_left</span>
+                      <button className="carousel-nav-btn tight prev" onClick={(e) => { e.preventDefault(); scrollPrev(); }}>
+                        <span className="material-symbols-outlined">chevron_left</span>
                       </button>
                     )}
                     {currentImageIndex < previewUrls.length - 1 && (
-                      <button className="carousel-nav-btn next" onClick={(e) => { e.preventDefault(); scrollNext(); }} style={{ right: '8px' }}>
-                        <span className="material-symbols-outlined" style={{fontSize: '20px', color: '#1e293b'}}>chevron_right</span>
+                      <button className="carousel-nav-btn tight next" onClick={(e) => { e.preventDefault(); scrollNext(); }}>
+                        <span className="material-symbols-outlined">chevron_right</span>
                       </button>
                     )}
                     {/* Filters could be added here if needed */}
@@ -303,12 +289,12 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
 
                 <div className="create-post-actions">
                   <label className="create-action-btn">
-                    <span className="material-symbols-outlined" style={{color: '#45bd62'}}>photo_library</span>
+                    <span className="material-symbols-outlined icon-green">photo_library</span>
                     <span>Ảnh/Video</span>
-                    <input type="file" onChange={handleFileChange} accept="image/*,video/*" multiple style={{ display: 'none' }} />
+                    <input type="file" onChange={handleFileChange} accept="image/*,video/*" multiple className="file-input-hidden" />
                   </label>
                   <button className={`create-action-btn ${showFeelings ? 'active' : ''}`} onClick={() => setShowFeelings(!showFeelings)}>
-                    <span className="material-symbols-outlined" style={{color: '#f7b928'}}>sentiment_satisfied</span>
+                    <span className="material-symbols-outlined icon-yellow">sentiment_satisfied</span>
                     <span>Cảm xúc</span>
                   </button>
                 </div>
@@ -331,18 +317,16 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
                   </div>
                 )}
 
-                <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '12px', gap: '8px', width: '100%'}}>
+                <div className="create-post-footer">
                    <button 
-                    className="btn secondary" 
-                    style={{ flex: 1 }}
+                    className="btn secondary flex-1" 
                     onClick={() => { setIsExpanded(false); setFiles([]); setPreviewUrls([]); setCaption(''); setFeeling(null); setShowFeelings(false); }}
                     disabled={isSubmitting}
                    >
                      Hủy
                    </button>
                    <button 
-                    className="btn primary" 
-                    style={{ flex: 1 }}
+                    className="btn primary flex-1" 
                     onClick={handleSubmit}
                     disabled={isSubmitting || (!caption.trim() && files.length === 0)}
                    >
@@ -355,8 +339,8 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
         )}
 
         {kois.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#8e8e8e'}}>
-            <span className="material-symbols-outlined" style={{fontSize: '48px'}}>photo_camera</span>
+          <div className="feed-empty">
+            <span className="material-symbols-outlined">photo_camera</span>
             <p>Chưa có bài đăng nào. Hãy là người đầu tiên!</p>
           </div>
         ) : (
@@ -366,6 +350,9 @@ const GalleryPage = ({ refreshKey, currentUser }) => {
               koi={koi}
               currentUser={currentUser}
               onRemove={(id) => setKois(prev => prev.filter(item => item.id !== id))}
+              onUpdate={(updated) =>
+                setKois(prev => prev.map(item => (item.id === updated.id ? { ...item, ...updated } : item)))
+              }
             />
           ))
         )}
