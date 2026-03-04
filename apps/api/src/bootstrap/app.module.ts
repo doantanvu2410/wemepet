@@ -10,6 +10,7 @@ import { AdminModule } from '../modules/admin/admin.module';
 import { RolesModule } from '../modules/roles/roles.module';
 import { AuditModule } from '../modules/audit/audit.module';
 import { MediaModule } from '../modules/media/media.module';
+import { HealthModule } from '../modules/health/health.module';
 import { PrismaModule } from '../shared/infra/db/prisma.module';
 import { CacheModule } from '../shared/infra/cache/cache.module';
 import { CsrfOriginMiddleware } from '../common/middleware/csrf-origin.middleware';
@@ -29,6 +30,7 @@ import { CsrfOriginMiddleware } from '../common/middleware/csrf-origin.middlewar
     TransfersModule,
     AdminModule,
     MediaModule,
+    HealthModule,
   ],
 })
 export class AppModule implements NestModule {

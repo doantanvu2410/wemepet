@@ -21,6 +21,7 @@ npm-debug.log*
 .DS_Store
 .vscode/
 .idea/
+.vercel/
 
 # infra local
 infra/docker/data/
