@@ -5,6 +5,7 @@ import {
   KoiStatus,
   MediaKind,
   NotificationType,
+  Prisma,
   PostKind,
   PostStatus,
   PrismaClient,
@@ -298,8 +299,8 @@ async function migrate() {
         entityId: asString(row.entityId),
         groupKey: asString(row.groupKey),
         metadata: {
-          legacyPayload: row,
-        },
+          legacyPayload: row as Prisma.InputJsonValue,
+        } as Prisma.InputJsonObject,
         isRead: Boolean(row.isRead),
         createdAt: maybeDate(row.createdAt) ?? new Date(),
       },

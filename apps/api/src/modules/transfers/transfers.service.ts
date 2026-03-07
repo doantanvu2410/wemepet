@@ -376,7 +376,7 @@ export class TransfersService {
   private async handleDecision(
     transferId: string,
     actorId: string,
-    status: TransferStatus.REJECTED | TransferStatus.CANCELLED,
+    status: TransferStatus,
     reason?: string,
   ) {
     const isReject = status === TransferStatus.REJECTED;

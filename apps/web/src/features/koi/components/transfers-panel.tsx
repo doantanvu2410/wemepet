@@ -70,7 +70,7 @@ export function TransfersPanel() {
           <article key={item.id} className="transfer-item">
             <strong>{item.koi.name}</strong>
             <span>
-              {item.fromUser.displayName} -> {item.toUser.displayName}
+              {item.fromUser.displayName} {'->'} {item.toUser.displayName}
             </span>
             <small>{item.status}</small>
           </article>
